@@ -2,32 +2,25 @@ const mongoose = require("mongoose");
 
 const scholarshipSchema = new mongoose.Schema(
   {
-    universityName: String,
-    universityLogo: String,
-    universityLocation: String,
+    scholarshipName: { type: String, required: true },
+    universityName: { type: String, required: true },
+    universityLogo: { type: String, required: true },
+    universityCountry: { type: String, required: true }, // Updated field
+    universityCity: { type: String, required: true }, // Updated field
     worldRank: Number,
-    subjectCategory: String,
-    scholarshipCategory: String,
-    degree: String,
+    subjectCategory: { type: String, required: true },
+    scholarshipCategory: { type: String, required:true },
+    degree: { type: String, required: true },
     tuitionFees: Number,
-    applicationFees: Number,
-    serviceCharge: Number,
+    applicationFees: { type: Number, required: true },
+    serviceCharge: { type: Number, required: true },
     stipend: String,
-    postDate: Date,
-    deadline: Date,
-    description: String,
-    postedBy: String,
-    rating: { type: Number, default: 0 },
-    reviews: [
-      {
-        userId: mongoose.Schema.Types.ObjectId,
-        userName: String,
-        userEmail: String,
-        comment: String,
-        rating: Number,
-        date: Date,
-      },
-    ],
+    postDate: { type: Date, default: Date.now },
+    deadline: { type: Date, required: true },
+    description: { type: String, required: true },
+    postedUserEmail: String, // Field for who posted it
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }], // Link to standalone Review model
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
   },
   { timestamps: true }
 );

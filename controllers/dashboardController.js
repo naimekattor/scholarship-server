@@ -2,45 +2,45 @@ const User = require("../models/User");
 const Application = require("../models/Application");
 const Scholarship = require("../models/Scholarship");
 
-exports.getUserDashboard = async (req, res) => {
+// Get analytics for the Admin Dashboard
+exports.getAdminStats = async (req, res) => {
   try {
-    const myApps = await Application.find({ userId: req.user.id });
-    res.json({ message: "User dashboard", myApps });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error loading user dashboard", error: err.message });
-  }
-};
+    // 1. Basic counts
+    const totalUsers = await User.countDocuments();
+    const totalScholarships = await Scholarship.countDocuments();
+    const totalApplications = await Application.countDocuments();
 
-exports.getModeratorDashboard = async (req, res) => {
-  try {
-    const allScholarships = await Scholarship.find({});
-    const allApplications = await Application.find({});
+    // 2. Applications by status
+    const applicationsByStatus = await Application.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    
+    // 3. Scholarships by category
+     const scholarshipsByCategory = await Scholarship.aggregate([
+      {
+        $group: {
+          _id: "$scholarshipCategory",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
     res.json({
-      message: "Moderator dashboard",
-      allScholarships,
-      allApplications,
+      message: "Admin statistics loaded successfully",
+      stats: {
+        totalUsers,
+        totalScholarships,
+        totalApplications,
+        applicationsByStatus,
+        scholarshipsByCategory
+      },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        message: "Error loading moderator dashboard",
-        error: err.message,
-      });
-  }
-};
-
-exports.getAdminDashboard = async (req, res) => {
-  try {
-    const users = await User.find();
-    const applications = await Application.find();
-    const scholarships = await Scholarship.find();
-    res.json({ message: "Admin dashboard", users, applications, scholarships });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error loading admin dashboard", error: err.message });
+    res.status(500).json({ message: "Error loading admin statistics", error: err.message });
   }
 };

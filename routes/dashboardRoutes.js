@@ -3,23 +3,18 @@ const router = express.Router();
 const authMiddleware = require("../middlewares/authMiddleware");
 const roleMiddleware = require("../middlewares/roleMiddleware");
 const {
-  getUserDashboard,
-  getModeratorDashboard,
-  getAdminDashboard,
+  getAdminStats, // New
 } = require("../controllers/dashboardController");
 
-router.get("/user", authMiddleware, roleMiddleware(["user"]), getUserDashboard);
+// This file can be simplified, as dashboard data can be fetched from the other specific endpoints.
+// However, the Analytics endpoint is a perfect fit here.
+
+// Admin gets analytics/stats for the dashboard chart
 router.get(
-  "/moderator",
-  authMiddleware,
-  roleMiddleware(["moderator"]),
-  getModeratorDashboard
-);
-router.get(
-  "/admin",
+  "/admin/stats",
   authMiddleware,
   roleMiddleware(["admin"]),
-  getAdminDashboard
+  getAdminStats
 );
 
 module.exports = router;
