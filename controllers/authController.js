@@ -40,3 +40,44 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+exports.googleLogin = async (req, res) => {
+  const { name, email } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+
+    // If the user does not exist in your database, create a new one
+    if (!user) {
+      // Create a random password or handle password-less login
+      // For simplicity, we are creating a new user with the details from Google
+      user = new User({
+        name,
+        email,
+        password: Math.random().toString(36).slice(-8),
+      });
+      await user.save();
+    }
+
+    // Create a JWT for this user
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h", // Token expires in 24 hours
+      }
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
