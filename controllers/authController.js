@@ -34,8 +34,14 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
+    const payload = {
+      id: user._id,
+      role: user.role,
+      name: user.name,
+      photo: user.photo,
+    };
 
-    const token = generateToken(user);
+    const token = generateToken(payload);
     res.status(200).json({ user, token });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -84,6 +90,8 @@ exports.googleLogin = async (req, res) => {
     const payload = {
       id: user._id,
       role: user.role,
+      name: user.name,
+      photo: user.photo,
     };
 
     // Sign the token

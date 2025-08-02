@@ -19,18 +19,19 @@ async function updateScholarshipRating(scholarshipId) {
 exports.createReview = async (req, res) => {
   try {
     const { scholarshipId } = req.params;
-    const { reviewComment, rating, reviewerImage } = req.body;
-    const user = req.user;
+    const { reviewComment, rating } = req.body; // Remove reviewerImage from here
+    const user = req.user; // user now contains { id, name, photo, role }
 
     const scholarship = await Scholarship.findById(scholarshipId);
     if (!scholarship)
       return res.status(404).json({ message: "Scholarship not found." });
 
+    // THE FIX: Use the data directly from the token
     const review = await Review.create({
       scholarshipId,
       userId: user.id,
-      userName: user.name,
-      reviewerImage,
+      userName: user.name, // This will now work correctly
+      reviewerImage: user.photo, // Use the photo from the token
       reviewComment,
       rating,
     });
@@ -41,6 +42,7 @@ exports.createReview = async (req, res) => {
 
     res.status(201).json({ message: "Review added successfully", review });
   } catch (err) {
+    console.error("Error in createReview:", err); // Added for better debugging
     res
       .status(500)
       .json({ message: "Error adding review", error: err.message });
@@ -85,11 +87,9 @@ exports.updateMyReview = async (req, res) => {
 
     const review = await Review.findOne({ _id: id, userId: req.user.id });
     if (!review)
-      return res
-        .status(404)
-        .json({
-          message: "Review not found or you are not authorized to edit it.",
-        });
+      return res.status(404).json({
+        message: "Review not found or you are not authorized to edit it.",
+      });
 
     review.reviewComment = reviewComment;
     review.rating = rating;
@@ -114,11 +114,9 @@ exports.deleteMyReview = async (req, res) => {
     });
 
     if (!review)
-      return res
-        .status(404)
-        .json({
-          message: "Review not found or you are not authorized to delete it.",
-        });
+      return res.status(404).json({
+        message: "Review not found or you are not authorized to delete it.",
+      });
 
     await Scholarship.updateOne(
       { _id: review.scholarshipId },
